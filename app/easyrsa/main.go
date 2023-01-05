@@ -53,7 +53,7 @@ func IsInitialized() bool {
 
 func Initialize() error {
 	os.Mkdir(config.Current.Path, 0755)
-	err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
+	err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
-	err = execCmd(fmt.Sprintf("cd %s && ./easyrsa build-server-full server nopass", config.Current.Path))
+	err = execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa build-server-full server nopass", config.Current.Path))
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func CreateClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	return execCmd(fmt.Sprintf("cd %s && ./easyrsa build-client-full %s nopass", config.Current.Path, name))
+	return execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa build-client-full %s nopass", config.Current.Path, name))
 }
 
 func RevokeClient(name string) error {
@@ -207,7 +207,7 @@ func RevokeClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	return execCmd(fmt.Sprintf("cd %s && echo yes | ./easyrsa revoke %s && ./easyrsa gen-crl", config.Current.Path, name))
+	return execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa revoke %s && ./easyrsa gen-crl", config.Current.Path, name))
 }
 
 func GetProfile(name string) ([]byte, error) {
