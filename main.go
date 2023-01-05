@@ -2,7 +2,10 @@ package main
 
 import (
 	"easyrsa-web-ui/app/config"
+	"easyrsa-web-ui/app/easyrsa"
 	"easyrsa-web-ui/web"
+	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -20,5 +23,16 @@ func main() {
 	case "error":
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
+
+	if len(os.Args) > 1 {
+		if os.Args[1] == "init" {
+			if !easyrsa.IsInitialized() {
+				easyrsa.Initialize()
+				fmt.Print("pki initialize")
+			}
+			return
+		}
+	}
+
 	web.Init()
 }
