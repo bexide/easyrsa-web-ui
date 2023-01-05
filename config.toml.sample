@@ -1,0 +1,13 @@
+[easyrsa]
+path = "./easyrsa"
+
+[logging]
+level = "info"
+
+[http]
+port = "3000"
+
+[openvpn]
+support = true
+server = "[openvpn server name]"
+port = "1194"

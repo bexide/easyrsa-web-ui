@@ -1,0 +1,47 @@
+{{ define "web/template/index.html" -}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>easyrsa-web-ui</title>
+        <link href="/static/main.css" rel="stylesheet">
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    var l = document.getElementsByClassName("confirm_revoke")
+    for (let i = 0; i < l.length; i++) {
+        l[i].addEventListener('click', () => confirm('無効化して良いですか'))
+    }
+});
+</script>
+    </head>
+    <body>
+        <table id="maintable">
+            <thead>
+            <tr>
+                <th>status</th>
+                <th>identity</th>
+                <th>expiredate</th>
+                <th>revokedate</th>
+                <th>control</th>
+            </tr>
+            </thead>
+            <tbody>
+{{range .Clients }}
+            <tr>
+                <td>{{.Status}}</td>
+                <td>{{.Identity}}</td>
+                <td>{{toDate .ExpireDate}}</td>
+                <td>{{toDate .RevokeDate}}</td>
+                <td>{{ if eq .Status "Active" }}
+{{if $.Config.OpenvpnConfig.Support}}
+                    <a href="/user/{{.Identity}}/profile"><button>プロファイル</button></a>
+{{end}}
+                    <form method="POST" action="/user/{{.Identity}}/revoke"><button class="confirm_revoke">無効化</button></form>
+                {{end}}</td>
+            </tr>
+{{end}}
+            </tbody>
+        </table>
+    </body>
+</html>
+{{- end }}
