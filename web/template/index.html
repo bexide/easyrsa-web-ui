@@ -11,18 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < l.length; i++) {
         l[i].addEventListener('click', () => confirm('無効化して良いですか'))
     }
+    var i = document.getElementById("openbutton")
+    i.addEventListener('click', () => document.getElementById("entry-bg").style.display='block')
+    var i = document.getElementById("closebutton")
+    i.addEventListener('click', () => document.getElementById("entry-bg").style.display='none')
 });
 </script>
     </head>
     <body>
+        <button id="openbutton">新規作成</button>
         <table id="maintable">
             <thead>
             <tr>
-                <th>status</th>
-                <th>identity</th>
-                <th>expiredate</th>
-                <th>revokedate</th>
-                <th>control</th>
+                <th>ステータス</th>
+                <th>名称</th>
+                <th>有効期限</th>
+                <th>無効化日時</th>
+                <th>操作</th>
             </tr>
             </thead>
             <tbody>
@@ -42,6 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
 {{end}}
             </tbody>
         </table>
+        <div id="entry-bg">
+            <div id="entry-box">
+                <form method="POST" action="/user/create">
+                    <input type="text" name="name" />
+                    <button type="submit">作成</button>
+                </form>
+                <button id="closebutton">閉じる</button>
+            </div>
+        </div>
     </body>
 </html>
 {{- end }}

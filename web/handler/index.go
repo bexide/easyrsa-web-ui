@@ -39,10 +39,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func Create(w http.ResponseWriter, r *http.Request) {
-	err := easyrsa.CreateClient("test22")
-	if err != nil {
-		fmt.Fprintln(w, err)
+	name := r.FormValue("name")
+	if name != "" {
+		err := easyrsa.CreateClient(name)
+		if err != nil {
+			fmt.Fprintln(w, err)
+		}
 	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func GetProfile(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +67,7 @@ func Revoke(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprintln(w, err)
 	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func Unrevoke(w http.ResponseWriter, r *http.Request) {
