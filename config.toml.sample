@@ -1,5 +1,6 @@
 [easyrsa]
 path = "./easyrsa"
+pkiPath = "/etc/openvpn/server"
 
 [logging]
 level = "info"

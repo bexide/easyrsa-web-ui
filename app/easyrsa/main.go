@@ -57,10 +57,13 @@ func IsInitialized() bool {
 }
 
 func Initialize() error {
-	os.Mkdir(config.Current.Path, 0755)
-	err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
+	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
 	if err != nil {
-		return err
+		os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
+		err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
+		if err != nil {
+			return err
+		}
 	}
 	err = execCmd(fmt.Sprintf("%s init-pki", easyrsaCmd()))
 	if err != nil {
