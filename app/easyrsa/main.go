@@ -39,15 +39,20 @@ const (
 func init() {
 }
 
-func pkiPath() string {
-	return filepath.Join(config.Current.Path, "pki")
-}
 func pkiIndexPath() string {
-	return filepath.Join(pkiPath(), "index.txt")
+	return filepath.Join(config.Current.PkiPath, "index.txt")
+}
+
+func easyrsaCmd() string {
+	return fmt.Sprintf("%s --pki-dir=%s", filepath.Join(config.Current.Path, "easyrsa"), config.Current.PkiPath)
 }
 
 func IsInitialized() bool {
 	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(config.Current.PkiPath)
 	return err == nil
 }
 
@@ -57,25 +62,25 @@ func Initialize() error {
 	if err != nil {
 		return err
 	}
-	err = execCmd(fmt.Sprintf("cd %s && ./easyrsa init-pki", config.Current.Path))
+	err = execCmd(fmt.Sprintf("%s init-pki", easyrsaCmd()))
 	if err != nil {
 		return err
 	}
-	err = execCmd(fmt.Sprintf("cd %s && echo \"ca\" | ./easyrsa build-ca nopass", config.Current.Path))
+	err = execCmd(fmt.Sprintf("echo \"ca\" | %s build-ca nopass", easyrsaCmd()))
 	if err != nil {
 		return err
 	}
-	err = execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa build-server-full server nopass", config.Current.Path))
+	err = execCmd(fmt.Sprintf("echo \"yes\" | %s build-server-full server nopass", easyrsaCmd()))
 	if err != nil {
 		return err
 	}
 
 	if config.Current.OpenvpnConfig.Support {
-		err = execCmd(fmt.Sprintf("cd %s && ./easyrsa gen-dh", config.Current.Path))
+		err = execCmd(fmt.Sprintf("%s gen-dh", easyrsaCmd()))
 		if err != nil {
 			return err
 		}
-		err = execCmd(fmt.Sprintf("cd %s && cd pki && openvpn --genkey --secret ta.key", config.Current.Path))
+		err = execCmd(fmt.Sprintf("cd %s && openvpn --genkey --secret ta.key", config.Current.PkiPath))
 		if err != nil {
 			return err
 		}
@@ -134,7 +139,7 @@ func parseIndex() ([]indexData, error) {
 }
 
 func getKey(name string) (string, error) {
-	ret, err := os.ReadFile(filepath.Join(pkiPath(), "private", name+".key"))
+	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "private", name+".key"))
 	if err != nil {
 		return "", err
 	}
@@ -142,7 +147,7 @@ func getKey(name string) (string, error) {
 }
 
 func getCrt(name string) (string, error) {
-	ret, err := os.ReadFile(filepath.Join(pkiPath(), "issued", name+".crt"))
+	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "issued", name+".crt"))
 	if err != nil {
 		return "", err
 	}
@@ -150,7 +155,7 @@ func getCrt(name string) (string, error) {
 }
 
 func ServerCa() (string, error) {
-	ret, err := os.ReadFile(filepath.Join(pkiPath(), "ca.crt"))
+	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "ca.crt"))
 	if err != nil {
 		return "", err
 	}
@@ -158,7 +163,7 @@ func ServerCa() (string, error) {
 }
 
 func ServerTa() (string, error) {
-	ret, err := os.ReadFile(filepath.Join(pkiPath(), "ta.key"))
+	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "ta.key"))
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +204,7 @@ func CreateClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	return execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa build-client-full %s nopass", config.Current.Path, name))
+	return execCmd(fmt.Sprintf("echo \"yes\" | %s build-client-full %s nopass", easyrsaCmd(), name))
 }
 
 func RevokeClient(name string) error {
@@ -207,7 +212,7 @@ func RevokeClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	return execCmd(fmt.Sprintf("cd %s && echo \"yes\" | ./easyrsa revoke %s && ./easyrsa gen-crl", config.Current.Path, name))
+	return execCmd(fmt.Sprintf("echo \"yes\" | %s revoke %s && %s gen-crl", easyrsaCmd(), name, easyrsaCmd()))
 }
 
 func GetProfile(name string) ([]byte, error) {

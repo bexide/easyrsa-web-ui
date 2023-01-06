@@ -9,9 +9,15 @@ import (
 )
 
 func TestMain(t *testing.T) {
+	t.Cleanup(func() {
+		os.RemoveAll(config.Current.PkiPath)
+		os.RemoveAll(config.Current.Path)
+	})
+
 	os.Chdir("../..")
 
 	config.Current.Path = "testrsa"
+	config.Current.PkiPath = "testpki"
 
 	isInit := IsInitialized()
 	assert.False(t, isInit, "Initialize")
@@ -21,6 +27,9 @@ func TestMain(t *testing.T) {
 	if err != nil {
 		return
 	}
+
+	_, err = ServerCa()
+	assert.NoError(t, err, "ServerCa()")
 
 	name1 := "test1"
 	err = CreateClient(name1)
@@ -34,6 +43,4 @@ func TestMain(t *testing.T) {
 	// no user error
 	err = RevokeClient(name1)
 	assert.Error(t, err, "DeleteClient(test1")
-
-	os.RemoveAll(config.Current.Path)
 }
