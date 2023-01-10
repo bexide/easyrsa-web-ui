@@ -244,6 +244,8 @@ dev tun
 proto udp
 remote %s %s
 resolv-retry infinite
+redirect-gateway def1 # tunnel all trafic
+# route %s  # tunnel only this network
 nobind
 persist-key
 persist-tun
@@ -261,7 +263,7 @@ compress lz4-v2
 </cert>
 <key>
 %s
-</key>`, config.Current.ServerName, config.Current.ServerPort, ca, crt, key)
+</key>`, config.Current.ServerName, config.Current.ServerPort, config.Current.ServerNetwork, ca, crt, key)
 	if ta != "" {
 		ret = fmt.Sprintf(`%s
 <tls-auth>

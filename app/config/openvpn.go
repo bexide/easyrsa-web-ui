@@ -3,15 +3,17 @@ package config
 import "github.com/spf13/viper"
 
 type OpenvpnConfig struct {
-	Support    bool
-	ServerName string
-	ServerPort string
+	Support       bool
+	ServerName    string
+	ServerPort    string
+	ServerNetwork string
 }
 
 func newOpenvpnConfig() OpenvpnConfig {
 	return OpenvpnConfig{
-		Support:    viper.GetBool(`openvpn.support`),
-		ServerName: viper.GetString(`openvpn.server`),
-		ServerPort: viper.GetString(`openvpn.port`),
+		Support:       viper.GetBool(`openvpn.support`),
+		ServerName:    viper.GetString(`openvpn.server`),
+		ServerPort:    viper.GetString(`openvpn.port`),
+		ServerNetwork: viper.GetString(`openvpn.network`),
 	}
 }

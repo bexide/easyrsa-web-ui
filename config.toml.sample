@@ -12,3 +12,4 @@ port = "3000"
 support = true
 server = "[openvpn server name]"
 port = "1194"
+network = "192.168.0.0 255.255.255.0"
