@@ -1,0 +1,16 @@
+client
+dev tun
+proto udp
+remote [openvpn server name] [openvpn server port]
+resolv-retry infinite
+# redirect-gateway def1 # tunnel all trafic
+# route [vpn network]  # tunnel only this network
+nobind
+persist-key
+persist-tun
+verb 3
+keepalive 10 1200
+inactive 3600
+key-direction 1
+remote-cert-tls server
+compress lz4-v2

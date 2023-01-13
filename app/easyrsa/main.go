@@ -141,6 +141,14 @@ func parseIndex() ([]indexData, error) {
 	return ret, nil
 }
 
+func clientConfig() (string, error) {
+	ret, err := os.ReadFile(config.Current.ClientConfig)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(ret)), nil
+}
+
 func getKey(name string) (string, error) {
 	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "private", name+".key"))
 	if err != nil {
@@ -222,6 +230,10 @@ func GetProfile(name string) ([]byte, error) {
 	if !config.Current.OpenvpnConfig.Support {
 		return nil, errors.New("openvpn not support")
 	}
+	cc, err := clientConfig()
+	if err != nil {
+		return nil, err
+	}
 	key, err := getKey(name)
 	if err != nil {
 		return nil, err
@@ -239,22 +251,7 @@ func GetProfile(name string) ([]byte, error) {
 		ta = ""
 		// return nil, err
 	}
-	ret := fmt.Sprintf(`client
-dev tun
-proto udp
-remote %s %s
-resolv-retry infinite
-redirect-gateway def1 # tunnel all trafic
-# route %s  # tunnel only this network
-nobind
-persist-key
-persist-tun
-verb 3
-keepalive 10 1200
-inactive 3600
-key-direction 1
-remote-cert-tls server
-compress lz4-v2
+	ret := fmt.Sprintf(`%s
 <ca>
 %s
 </ca>
@@ -263,7 +260,7 @@ compress lz4-v2
 </cert>
 <key>
 %s
-</key>`, config.Current.ServerName, config.Current.ServerPort, config.Current.ServerNetwork, ca, crt, key)
+</key>`, cc, ca, crt, key)
 	if ta != "" {
 		ret = fmt.Sprintf(`%s
 <tls-auth>
