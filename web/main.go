@@ -18,7 +18,8 @@ func Init() {
 
 	r.HandleFunc("/", handler.Index)
 	r.Post("/user/create", handler.Create)
-	r.Get("/user/{identity}/profile", handler.GetProfile)
+	r.Get("/user/{identity}/p12", handler.GetP12)
+	r.Get("/user/{identity}/ovpn", handler.GetOvpn)
 	r.Post("/user/{identity}/revoke", handler.Revoke)
 	r.Post("/user/{identity}/unrevoke", handler.Unrevoke)
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))

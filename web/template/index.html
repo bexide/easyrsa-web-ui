@@ -38,8 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>{{toDate .ExpireDate}}</td>
                 <td>{{toDate .RevokeDate}}</td>
                 <td>{{ if eq .Status "Active" }}
+                    <a href="/user/{{.Identity}}/p12"><button>.p12</button></a>
 {{if $.Config.OpenvpnConfig.Support}}
-                    <a href="/user/{{.Identity}}/profile"><button>プロファイル</button></a>
+                    <a href="/user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
 {{end}}
                     <form method="POST" action="/user/{{.Identity}}/revoke"><button class="confirm_revoke">無効化</button></form>
                 {{end}}</td>

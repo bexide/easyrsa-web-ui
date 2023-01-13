@@ -226,7 +226,15 @@ func RevokeClient(name string) error {
 	return execCmd(fmt.Sprintf("echo \"yes\" | %s revoke %s && %s gen-crl", easyrsaCmd(), name, easyrsaCmd()))
 }
 
-func GetProfile(name string) ([]byte, error) {
+func GetP12(name string) ([]byte, error) {
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("openssl pkcs12 -export -passout pass: -inkey %s -in %s -certfile %s",
+		filepath.Join(config.Current.PkiPath, "private", fmt.Sprintf("%s.key", name)),
+		filepath.Join(config.Current.PkiPath, "issued", fmt.Sprintf("%s.crt", name)),
+		filepath.Join(config.Current.PkiPath, "ca.crt")))
+	return cmd.CombinedOutput()
+}
+
+func GetOvpn(name string) ([]byte, error) {
 	if !config.Current.OpenvpnConfig.Support {
 		return nil, errors.New("openvpn not support")
 	}

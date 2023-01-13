@@ -49,16 +49,28 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func GetProfile(w http.ResponseWriter, r *http.Request) {
+func GetP12(w http.ResponseWriter, r *http.Request) {
 	identity := chi.URLParam(r, "identity")
-	profile, err := easyrsa.GetProfile(identity)
+	out, err := easyrsa.GetP12(identity)
+	if err != nil {
+		fmt.Fprintln(w, err)
+		return
+	}
+	w.Header().Add("Content-Type", "application/x-pkcs12")
+	w.Header().Add("Content-DIsposition", fmt.Sprintf("attachment; filename=\"%s.p12\"", identity))
+	w.Write(out)
+}
+
+func GetOvpn(w http.ResponseWriter, r *http.Request) {
+	identity := chi.URLParam(r, "identity")
+	out, err := easyrsa.GetOvpn(identity)
 	if err != nil {
 		fmt.Fprintln(w, err)
 		return
 	}
 	w.Header().Add("Content-Type", "application/x-openvpn-profile")
 	w.Header().Add("Content-DIsposition", fmt.Sprintf("attachment; filename=\"%s.ovpn\"", identity))
-	w.Write(profile)
+	w.Write(out)
 }
 
 func Revoke(w http.ResponseWriter, r *http.Request) {
