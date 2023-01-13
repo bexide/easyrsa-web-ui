@@ -9,9 +9,9 @@ type EasyrsaConfig struct {
 
 func newEasyrsaConfig() EasyrsaConfig {
 	viper.SetDefault("easyrsa.pth", "./easyrsa")
-	viper.SetDefault("easyrsa.pkiPath", "./easyrsa/pki")
+	viper.SetDefault("easyrsa.pki_path", "./easyrsa/pki")
 	return EasyrsaConfig{
 		Path:    viper.GetString(`easyrsa.path`),
-		PkiPath: viper.GetString(`easyrsa.pkiPath`),
+		PkiPath: viper.GetString(`easyrsa.pki_path`),
 	}
 }
