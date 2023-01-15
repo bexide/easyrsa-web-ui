@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -45,6 +46,23 @@ func pkiIndexPath() string {
 
 func easyrsaCmd() string {
 	return fmt.Sprintf("%s --pki-dir=%s", filepath.Join(config.Current.Path, "easyrsa"), config.Current.PkiPath)
+}
+
+func copyFile(srcname, distname string) error {
+	src, err := os.Open(srcname)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dist, err := os.Create(distname)
+	if err != nil {
+		return err
+	}
+	defer dist.Close()
+
+	_, err = io.Copy(dist, src)
+	return err
 }
 
 func IsInitialized() bool {
@@ -141,6 +159,25 @@ func parseIndex() ([]indexData, error) {
 	return ret, nil
 }
 
+func writeIndex(list []indexData) error {
+	f, err := os.Create(pkiIndexPath())
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	for _, v := range list {
+		f.WriteString(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\n",
+			v.Flag,
+			v.ExpireDate,
+			v.RevoceDate,
+			v.SerialNumber,
+			v.Filename,
+			v.Distinguished))
+	}
+	return nil
+}
+
 func clientConfig() (string, error) {
 	ret, err := os.ReadFile(config.Current.ClientConfig)
 	if err != nil {
@@ -224,6 +261,62 @@ func RevokeClient(name string) error {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
 	return execCmd(fmt.Sprintf("echo \"yes\" | %s revoke %s && %s gen-crl", easyrsaCmd(), name, easyrsaCmd()))
+}
+
+func UnrevokeClient(name string) error {
+	reg := regexp.MustCompile(`^([a-zA-Z0-9_.-@])+$`)
+	if !reg.MatchString(name) {
+		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
+	}
+	modify := false
+	l, err := parseIndex()
+	if err != nil {
+		return err
+	}
+	for k, v := range l {
+		if v.Flag != "R" {
+			continue
+		}
+		distinguished := v.Distinguished[strings.Index(v.Distinguished, "=")+1:]
+		if distinguished != name {
+			continue
+		}
+		err = copyFile(
+			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", v.SerialNumber+".crt"),
+			filepath.Join(config.Current.PkiPath, "certs_by_serial", v.SerialNumber+".pem"))
+		if err != nil {
+			return err
+		}
+		err = os.Rename(
+			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", v.SerialNumber+".crt"),
+			filepath.Join(config.Current.PkiPath, "issued", name+".crt"))
+		if err != nil {
+			return err
+		}
+		err = os.Rename(
+			filepath.Join(config.Current.PkiPath, "revoked/private_by_serial", v.SerialNumber+".key"),
+			filepath.Join(config.Current.PkiPath, "private", name+".key"))
+		if err != nil {
+			return err
+		}
+		err = os.Rename(
+			filepath.Join(config.Current.PkiPath, "revoked/reqs_by_serial", v.SerialNumber+".req"),
+			filepath.Join(config.Current.PkiPath, "reqs", name+".req"))
+		if err != nil {
+			return err
+		}
+		l[k].Flag = "V"
+		l[k].RevoceDate = ""
+		modify = true
+	}
+	if modify {
+		err = writeIndex(l)
+		if err != nil {
+			return err
+		}
+		return execCmd(fmt.Sprintf("%s gen-crl", easyrsaCmd()))
+	}
+	return errors.New("no revoked user")
 }
 
 func GetP12(name string) ([]byte, error) {
