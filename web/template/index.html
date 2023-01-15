@@ -1,27 +1,29 @@
 {{ define "web/template/index.html" -}}
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>easyrsa-web-ui</title>
-        <link href="/static/main.css" rel="stylesheet">
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    var l = document.getElementsByClassName("confirm_revoke")
-    for (let i = 0; i < l.length; i++) {
-        l[i].addEventListener('click', () => confirm('無効化して良いですか'))
-    }
-    var i = document.getElementById("openbutton")
-    i.addEventListener('click', () => document.getElementById("entry-bg").style.display='block')
-    var i = document.getElementById("closebutton")
-    i.addEventListener('click', () => document.getElementById("entry-bg").style.display='none')
-});
-</script>
-    </head>
-    <body>
-        <button id="openbutton">新規作成</button>
-        <table id="maintable">
-            <thead>
+
+<head>
+    <meta charset="utf-8">
+    <title>easyrsa-web-ui</title>
+    <link href="./static/main.css" rel="stylesheet">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            var l = document.getElementsByClassName("confirm_revoke")
+            for (let i = 0; i < l.length; i++) {
+                l[i].addEventListener('click', () => confirm('無効化して良いですか'))
+            }
+            var i = document.getElementById("openbutton")
+            i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'block')
+            var i = document.getElementById("closebutton")
+            i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'none')
+        });
+    </script>
+</head>
+
+<body>
+    <button id="openbutton">新規作成</button>
+    <table id="maintable">
+        <thead>
             <tr>
                 <th>ステータス</th>
                 <th>名称</th>
@@ -29,34 +31,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>無効化日時</th>
                 <th>操作</th>
             </tr>
-            </thead>
-            <tbody>
-{{range .Clients }}
+        </thead>
+        <tbody>
+            {{range .Clients }}
             <tr>
                 <td>{{.Status}}</td>
                 <td>{{.Identity}}</td>
                 <td>{{toDate .ExpireDate}}</td>
                 <td>{{toDate .RevokeDate}}</td>
                 <td>{{ if eq .Status "Active" }}
-                    <a href="/user/{{.Identity}}/p12"><button>.p12</button></a>
-{{if $.Config.OpenvpnConfig.Support}}
-                    <a href="/user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
-{{end}}
-                    <form method="POST" action="/user/{{.Identity}}/revoke"><button class="confirm_revoke">無効化</button></form>
-                {{end}}</td>
+                    <a href="./user/{{.Identity}}/p12"><button>.p12</button></a>
+                    {{if $.Config.OpenvpnConfig.Support}}
+                    <a href="./user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
+                    {{end}}
+                    <form method="POST" action="./user/{{.Identity}}/revoke"><button class="confirm_revoke">無効化</button>
+                    </form>
+                    {{end}}
+                </td>
             </tr>
-{{end}}
-            </tbody>
-        </table>
-        <div id="entry-bg">
-            <div id="entry-box">
-                <form method="POST" action="/user/create">
-                    <input type="text" name="name" />
-                    <button type="submit">作成</button>
-                </form>
-                <button id="closebutton">閉じる</button>
-            </div>
+            {{end}}
+        </tbody>
+    </table>
+    <div id="entry-bg">
+        <div id="entry-box">
+            <form method="POST" action="./user/create">
+                <input type="text" name="name" />
+                <button type="submit">作成</button>
+            </form>
+            <button id="closebutton">閉じる</button>
         </div>
-    </body>
+    </div>
+</body>
+
 </html>
 {{- end }}
