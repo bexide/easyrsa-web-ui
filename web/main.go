@@ -22,6 +22,7 @@ func Init() {
 	r.Get("/user/{identity}/ovpn", handler.GetOvpn)
 	r.Post("/user/{identity}/revoke", handler.Revoke)
 	r.Post("/user/{identity}/unrevoke", handler.Unrevoke)
+	r.Post("/user/{identity}/renew", handler.Renew)
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	port := os.Getenv("PORT")
 	if port == "" {

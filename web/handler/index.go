@@ -90,3 +90,12 @@ func Unrevoke(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func Renew(w http.ResponseWriter, r *http.Request) {
+	identity := chi.URLParam(r, "identity")
+	err := easyrsa.RenewClient(identity)
+	if err != nil {
+		fmt.Fprintln(w, err)
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}

@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -65,6 +66,18 @@ func copyFile(srcname, distname string) error {
 	return err
 }
 
+func InitEasyrsa() error {
+	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
+	if err != nil {
+		os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
+		err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func IsInitialized() bool {
 	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
 	if err != nil {
@@ -75,13 +88,9 @@ func IsInitialized() bool {
 }
 
 func Initialize() error {
-	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
+	err := InitEasyrsa()
 	if err != nil {
-		os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
-		err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	err = execCmd(fmt.Sprintf("%s init-pki", easyrsaCmd()))
 	if err != nil {
@@ -178,14 +187,6 @@ func writeIndex(list []indexData) error {
 	return nil
 }
 
-func clientConfig() (string, error) {
-	ret, err := os.ReadFile(config.Current.ClientConfig)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(ret)), nil
-}
-
 func getKey(name string) (string, error) {
 	ret, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "private", name+".key"))
 	if err != nil {
@@ -200,6 +201,20 @@ func getCrt(name string) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(string(ret)), nil
+}
+
+func GetCertRenew() (int, error) {
+	vars, err := os.ReadFile(filepath.Join(config.Current.Path, "vars"))
+	if err != nil {
+		return 0, err
+	}
+	reg := regexp.MustCompile(`set_var\sEASYRSA_CERT_RENEW\s([0-9]+)`)
+	result := reg.FindStringSubmatch(string(vars))
+	ret, err := strconv.Atoi(result[1])
+	if err != nil {
+		return 0, err
+	}
+	return ret, nil
 }
 
 func ServerCa() (string, error) {
@@ -319,12 +334,32 @@ func UnrevokeClient(name string) error {
 	return errors.New("no revoked user")
 }
 
+func RenewClient(name string) error {
+	reg := regexp.MustCompile(`^([a-zA-Z0-9_.-@])+$`)
+	if !reg.MatchString(name) {
+		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
+	}
+	err := execCmd(fmt.Sprintf("echo \"yes\" | %s renew %s nopass ", easyrsaCmd(), name))
+	if err != nil {
+		return err
+	}
+	return execCmd(fmt.Sprintf("echo \"yes\" | %s revoke-renewed %s && %s gen-crl", easyrsaCmd(), name, easyrsaCmd()))
+}
+
 func GetP12(name string) ([]byte, error) {
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("openssl pkcs12 -export -passout pass: -inkey %s -in %s -certfile %s",
 		filepath.Join(config.Current.PkiPath, "private", fmt.Sprintf("%s.key", name)),
 		filepath.Join(config.Current.PkiPath, "issued", fmt.Sprintf("%s.crt", name)),
 		filepath.Join(config.Current.PkiPath, "ca.crt")))
 	return cmd.CombinedOutput()
+}
+
+func clientConfig() (string, error) {
+	ret, err := os.ReadFile(config.Current.ClientConfig)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(ret)), nil
 }
 
 func GetOvpn(name string) ([]byte, error) {
