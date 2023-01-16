@@ -8,23 +8,20 @@
     <link href="./static/main.css" rel="stylesheet">
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            var l = document.getElementsByClassName("confirm_revoke")
-            for (let i = 0; i < l.length; i++) {
-                l[i].addEventListener('click', () => confirm('無効化して良いですか'))
-            }
-            var l = document.getElementsByClassName("confirm_unrevoke")
-            for (let i = 0; i < l.length; i++) {
-                l[i].addEventListener('click', () => confirm('有効に戻して良いですか'))
-            }
-            var l = document.getElementsByClassName("confirm_renew")
-            for (let i = 0; i < l.length; i++) {
-                l[i].addEventListener('click', () => confirm('更新して良いですか'))
-            }
             var i = document.getElementById("openbutton")
             i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'block')
             var i = document.getElementById("closebutton")
             i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'none')
         });
+        function confirm_revoke() {
+            return confirm('無効化して良いですか')
+        }
+        function confirm_unrevoke() {
+            return confirm('有効に戻して良いですか')
+        }
+        function confirm_renew() {
+            return confirm('更新して良いですか')
+        }
     </script>
 </head>
 
@@ -53,10 +50,10 @@
 {{ if $.Config.OpenvpnConfig.Support }}
                     <a href="./user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
 {{ end }}
-                    <form method="POST" action="./user/{{.Identity}}/revoke"><button class="confirm_revoke">無効化</button></form>
-                    <form method="POST" action="./user/{{.Identity}}/renew"><button class="confirm_renew">更新</button></form>
+                    <form method="POST" action="./user/{{.Identity}}/revoke" onsubmit="return confirm_revoke()"><button>無効化</button></form>
+                    <form method="POST" action="./user/{{.Identity}}/renew" onsubmit="return confirm_renew()"><button>更新</button></form>
 {{ else }}
-                    <form method="POST" action="./user/{{.Identity}}/unrevoke"><button class="confirm_unrevoke">有効化</button></form>
+                    <form method="POST" action="./user/{{.Identity}}/unrevoke" onsubmit="return confirm_unrevoke()"><button>有効化</button></form>
 {{ end }}
                 </td>
             </tr>
