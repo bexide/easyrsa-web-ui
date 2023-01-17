@@ -51,7 +51,9 @@
                     <a href="./user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
 {{ end }}
                     <form method="POST" action="./user/{{.Identity}}/revoke" onsubmit="return confirm_revoke()"><button>無効化</button></form>
+{{ if .IsEnableRenew }}
                     <form method="POST" action="./user/{{.Identity}}/renew" onsubmit="return confirm_renew()"><button>更新</button></form>
+{{ end }}
 {{ else }}
 {{ if .IsEnableUnrevoke }}
                     <form method="POST" action="./user/{{.Serial}}/unrevoke" onsubmit="return confirm_unrevoke()"><button>有効化</button></form>

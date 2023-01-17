@@ -35,6 +35,17 @@ func (e EasyrsaClient) IsEnableUnrevoke() bool {
 	return err == nil
 }
 
+func (e EasyrsaClient) IsEnableRenew() bool {
+	date, err := GetCertRenew()
+	if err != nil {
+		return false
+	}
+	if time.Now().AddDate(0, 0, date).After(e.ExpireDate) {
+		return true
+	}
+	return false
+}
+
 type indexData struct {
 	Flag          string
 	ExpireDate    string
@@ -245,12 +256,15 @@ func getCrt(name string) (string, error) {
 }
 
 func GetCertRenew() (int, error) {
-	vars, err := os.ReadFile(filepath.Join(config.Current.Path, "vars"))
+	vars, err := os.ReadFile(filepath.Join(config.Current.PkiPath, "vars"))
 	if err != nil {
-		return 0, err
+		return 30, nil
 	}
-	reg := regexp.MustCompile(`set_var\sEASYRSA_CERT_RENEW\s([0-9]+)`)
+	reg := regexp.MustCompile(`[^#]\sset_var\sEASYRSA_CERT_RENEW\s([0-9]+)`)
 	result := reg.FindStringSubmatch(string(vars))
+	if len(result) < 2 {
+		return 30, nil
+	}
 	ret, err := strconv.Atoi(result[1])
 	if err != nil {
 		return 0, err
