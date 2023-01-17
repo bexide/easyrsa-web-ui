@@ -1,3 +1,11 @@
+div.top {
+    padding: 0.5em;
+}
+
+div.top div.top-right {
+    float: right;
+}
+
 table {
     border-collapse: collapse;
 }
@@ -5,6 +13,10 @@ table {
 table tr td , table tr th{
     border: 1px solid gray;
     padding:0.3em;
+}
+
+tr.inactive {
+    display: none;
 }
 
 form {
@@ -15,6 +27,10 @@ form {
 
 table#maintable {
     width: 100%
+}
+
+table#maintable tr td button {
+    margin-right: 1em;
 }
 
 div#entry-bg {
@@ -40,11 +56,6 @@ div#entry-box {
     bottom: 0;
     background-color: white;
     padding: 1em;
-}
-
-button#openbutton {
-    float: right;
-    margin: 1em;
 }
 
 button#closebutton {

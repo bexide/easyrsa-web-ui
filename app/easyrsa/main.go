@@ -20,11 +20,13 @@ import (
 )
 
 type EasyrsaClient struct {
-	Identity   string
-	Status     string
-	Serial     string
-	ExpireDate time.Time
-	RevokeDate time.Time
+	Identity       string
+	Status         string
+	Serial         string
+	ExpireDate     time.Time
+	RevokeDate     time.Time
+	EnableRenew    bool
+	EnableUnrevoke bool
 }
 
 func (e EasyrsaClient) IsEnableUnrevoke() bool {
@@ -36,6 +38,9 @@ func (e EasyrsaClient) IsEnableUnrevoke() bool {
 }
 
 func (e EasyrsaClient) IsEnableRenew() bool {
+	if e.Status == "Revoked" {
+		return false
+	}
 	date, err := GetCertRenew()
 	if err != nil {
 		return false
@@ -313,6 +318,8 @@ func Clients() ([]EasyrsaClient, error) {
 		case "E":
 			item.Status = "Expired"
 		}
+		item.EnableRenew = item.IsEnableRenew()
+		item.EnableUnrevoke = item.IsEnableUnrevoke()
 		ret = append(ret, item)
 	}
 	return ret, nil

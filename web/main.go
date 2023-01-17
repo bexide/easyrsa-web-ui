@@ -17,6 +17,7 @@ func Init() {
 	r.Use(middleware.CleanPath)
 
 	r.HandleFunc("/", handler.Index)
+	r.Get("/user/list", handler.List)
 	r.Post("/user/create", handler.Create)
 	r.Get("/user/{identity}/p12", handler.GetP12)
 	r.Get("/user/{identity}/ovpn", handler.GetOvpn)

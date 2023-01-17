@@ -12,6 +12,19 @@
             i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'block')
             var i = document.getElementById("closebutton")
             i.addEventListener('click', () => document.getElementById("entry-bg").style.display = 'none')
+            var i = document.getElementById("display_toggle")
+            i.addEventListener('click', () => {
+                var elem = document.getElementById("display_toggle")
+                const tr = document.querySelectorAll('.inactive')
+                for (const i of tr) {
+                    if (elem.checked) {
+                        i.style.display = 'table-row'
+                    } else {
+                        i.style.display = 'none'
+                    }
+                }
+            })
+            loadBody()
         });
         function confirm_revoke() {
             return confirm('無効化して良いですか')
@@ -22,11 +35,88 @@
         function confirm_renew() {
             return confirm('更新して良いですか')
         }
+        function dateFormat(src) {
+            const w = new Date(src)
+            if (w.getFullYear() == 1) {
+                return '-'
+            }
+            return w.getFullYear() + '/'
+                + ('0' + (w.getMonth()+1)).slice(-2) + '/'
+                + ('0' + w.getDate()).slice(-2)
+        }
+        function loadBody() {
+            fetch("./user/list", {method: "GET"})
+            .then(response => response.json())
+            .then(body => {
+                var tbody = document.querySelector('table#maintable tbody')
+                if (!tbody) return
+                for (item of body) {
+                    var tr = document.createElement('tr')
+                    tr.appendChild(Object.assign(document.createElement('td'), {innerHTML: item.Status }))
+                    tr.appendChild(Object.assign(document.createElement('td'), {innerHTML: item.Identity }))
+                    tr.appendChild(Object.assign(document.createElement('td'), {innerHTML: dateFormat(item.ExpireDate) }))
+                    tr.appendChild(Object.assign(document.createElement('td'), {innerHTML: dateFormat(item.RevokeDate) }))
+
+                    if (item.Status == 'Active') {
+                        var td = document.createElement('td')
+                        td.appendChild(Object.assign(document.createElement('a'), {
+                            href: './user/' + item.Identity + '/p12',
+                            innerHTML: `<button>.p12</button>`,
+                        }))
+
+                        td.appendChild(Object.assign(document.createElement('a'), {
+                            href: './user/' + item.Identity + '/ovpn',
+                            innerHTML: `<button>.ovpn</button>`,
+                        }))
+                        tr.appendChild(td)
+
+                        td = document.createElement('td')
+                        td.appendChild(Object.assign(document.createElement('form'), {
+                            method: 'POST',
+                            action: './user/' + item.Identity + '/revoke',
+                            onsubmit: 'return confirm_revoke()',
+                            innerHTML: `<button>無効化</button`,
+                        }))
+
+                        if (item.EnableRenew) {
+                            td.appendChild(Object.assign(document.createElement('form'), {
+                                method: 'POST',
+                                action: './user/' + item.Identity + '/renew',
+                                onsubmit: 'return confirm_renew()',
+                                innerHTML: `<button>更新</button`,
+                            }))
+                        }
+                        tr.appendChild(td)
+                    } else {
+                        var td = document.createElement('td')
+                        tr.appendChild(td)
+                        td = document.createElement('td')
+                        if (item.EnableUnrevoke) {
+                            td.appendChild(Object.assign(document.createElement('form'), {
+                                method: 'POST',
+                                action: './user/' + item.Serial + '/unrevoke',
+                                onsubmit: 'return confirm_unrevoke()',
+                                innerHTML: `<button>有効化</button`,
+                            }))
+                        }
+                        tr.setAttribute('class', 'inactive')
+                        tr.appendChild(td)
+                    }
+
+                    tbody.appendChild(tr)
+                }
+            })
+        }
     </script>
 </head>
 
 <body>
-    <button id="openbutton">新規作成</button>
+    <div class="top">
+        <button id="openbutton">新規作成</button>
+        <div class="top-right">
+            <label><input type="checkbox" id="display_toggle" />無効キー表示</label>
+        </div>
+    </div>
     <table id="maintable">
         <thead>
             <tr>
@@ -34,35 +124,11 @@
                 <th>名称</th>
                 <th>有効期限</th>
                 <th>無効化日時</th>
+                <th>鍵</th>
                 <th>操作</th>
             </tr>
         </thead>
-        <tbody>
-{{ range .Clients }}
-            <tr>
-                <td>{{.Status}}</td>
-                <td>{{.Identity}}</td>
-                <td>{{toDate .ExpireDate}}</td>
-                <td>{{toDate .RevokeDate}}</td>
-                <td>
-{{ if eq .Status "Active" }}
-                    <a href="./user/{{.Identity}}/p12"><button>.p12</button></a>
-{{ if $.Config.OpenvpnConfig.Support }}
-                    <a href="./user/{{.Identity}}/ovpn"><button>.ovpn</button></a>
-{{ end }}
-                    <form method="POST" action="./user/{{.Identity}}/revoke" onsubmit="return confirm_revoke()"><button>無効化</button></form>
-{{ if .IsEnableRenew }}
-                    <form method="POST" action="./user/{{.Identity}}/renew" onsubmit="return confirm_renew()"><button>更新</button></form>
-{{ end }}
-{{ else }}
-{{ if .IsEnableUnrevoke }}
-                    <form method="POST" action="./user/{{.Serial}}/unrevoke" onsubmit="return confirm_unrevoke()"><button>有効化</button></form>
-{{ end }}
-{{ end }}
-                </td>
-            </tr>
-{{ end }}
-        </tbody>
+        <tbody></tbody>
     </table>
     <div id="entry-bg">
         <div id="entry-box">

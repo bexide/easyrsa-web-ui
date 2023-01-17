@@ -3,6 +3,7 @@ package handler
 import (
 	"easyrsa-web-ui/app/config"
 	"easyrsa-web-ui/app/easyrsa"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -33,6 +34,17 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		"Clients": l,
 		"Config":  config.Current,
 	})
+	if err != nil {
+		fmt.Fprintln(w, err)
+	}
+}
+
+func List(w http.ResponseWriter, r *http.Request) {
+	l, err := easyrsa.Clients()
+	if err != nil {
+		fmt.Fprintln(w, err)
+	}
+	json.NewEncoder(w).Encode(l)
 	if err != nil {
 		fmt.Fprintln(w, err)
 	}
