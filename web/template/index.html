@@ -53,7 +53,9 @@
                     <form method="POST" action="./user/{{.Identity}}/revoke" onsubmit="return confirm_revoke()"><button>無効化</button></form>
                     <form method="POST" action="./user/{{.Identity}}/renew" onsubmit="return confirm_renew()"><button>更新</button></form>
 {{ else }}
-                    <form method="POST" action="./user/{{.Identity}}/unrevoke" onsubmit="return confirm_unrevoke()"><button>有効化</button></form>
+{{ if .IsEnableUnrevoke }}
+                    <form method="POST" action="./user/{{.Serial}}/unrevoke" onsubmit="return confirm_unrevoke()"><button>有効化</button></form>
+{{ end }}
 {{ end }}
                 </td>
             </tr>

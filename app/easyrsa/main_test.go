@@ -62,10 +62,16 @@ set_var EASYRSA_CERT_RENEW	15
 	assert.Error(t, err, "CreateClient(test1)")
 
 	err = RevokeClient(name1)
-	assert.NoError(t, err, "DeleteClient(test1")
+	assert.NoError(t, err, "RevokeClient(test1)")
 	// no user error
 	err = RevokeClient(name1)
-	assert.Error(t, err, "DeleteClient(test1")
+	assert.Error(t, err, "RevokeClient(test1)")
+
+	err = UnrevokeClient(name1)
+	assert.NoError(t, err, "UnrevokeClient(test1)")
+	// no user error
+	err = UnrevokeClient(name1)
+	assert.Error(t, err, "UnrevokeClient(test1)")
 
 	days, err := GetCertRenew()
 	assert.NoError(t, err, "GetCertRenew()")

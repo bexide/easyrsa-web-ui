@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,8 +22,17 @@ import (
 type EasyrsaClient struct {
 	Identity   string
 	Status     string
+	Serial     string
 	ExpireDate time.Time
 	RevokeDate time.Time
+}
+
+func (e EasyrsaClient) IsEnableUnrevoke() bool {
+	if e.Status != "Revoked" {
+		return false
+	}
+	_, err := os.Stat(filepath.Join(config.Current.PkiPath, "revoked/private_by_serial/", e.Serial+".key"))
+	return err == nil
 }
 
 type indexData struct {
@@ -165,10 +175,46 @@ func parseIndex() ([]indexData, error) {
 			Distinguished: v[5],
 		})
 	}
+	sort.Slice(ret, func(i, j int) bool {
+		if ret[i].Flag != ret[j].Flag {
+			ip := 1
+			jp := 1
+			switch ret[i].Flag {
+			case "E":
+				ip = 0
+			case "R":
+				ip = 2
+			}
+			switch ret[j].Flag {
+			case "E":
+				jp = 0
+			case "R":
+				jp = 2
+			}
+			return ip < jp
+		}
+		if ret[i].RevoceDate != "" {
+			return ret[i].RevoceDate > ret[j].RevoceDate
+		}
+		return ret[i].ExpireDate > ret[j].ExpireDate
+	})
 	return ret, nil
 }
 
-func writeIndex(list []indexData) error {
+func readIndex() ([][]string, error) {
+	f, err := os.Open(pkiIndexPath())
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	b := bufio.NewReader(f)
+	r := csv.NewReader(b)
+	r.Comma = '\t'
+	return r.ReadAll()
+}
+
+func writeIndex(list [][]string) error {
 	f, err := os.Create(pkiIndexPath())
 	if err != nil {
 		return err
@@ -177,12 +223,7 @@ func writeIndex(list []indexData) error {
 
 	for _, v := range list {
 		f.WriteString(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\n",
-			v.Flag,
-			v.ExpireDate,
-			v.RevoceDate,
-			v.SerialNumber,
-			v.Filename,
-			v.Distinguished))
+			v[0], v[1], v[2], v[3], v[4], v[5]))
 	}
 	return nil
 }
@@ -243,6 +284,7 @@ func Clients() ([]EasyrsaClient, error) {
 	for _, v := range l {
 		item := EasyrsaClient{
 			Identity:   v.Distinguished[strings.Index(v.Distinguished, "=")+1:],
+			Serial:     v.SerialNumber,
 			ExpireDate: parseDate(v.ExpireDate),
 			RevokeDate: parseDate(v.RevoceDate),
 		}
@@ -278,50 +320,46 @@ func RevokeClient(name string) error {
 	return execCmd(fmt.Sprintf("echo \"yes\" | %s revoke %s && %s gen-crl", easyrsaCmd(), name, easyrsaCmd()))
 }
 
-func UnrevokeClient(name string) error {
-	reg := regexp.MustCompile(`^([a-zA-Z0-9_.-@])+$`)
-	if !reg.MatchString(name) {
-		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
-	}
+func UnrevokeClient(serial string) error {
 	modify := false
-	l, err := parseIndex()
+	l, err := readIndex()
 	if err != nil {
 		return err
 	}
 	for k, v := range l {
-		if v.Flag != "R" {
+		if v[0] != "R" {
 			continue
 		}
-		distinguished := v.Distinguished[strings.Index(v.Distinguished, "=")+1:]
-		if distinguished != name {
+		if serial != v[3] {
 			continue
 		}
+		name := v[5][strings.Index(v[5], "=")+1:]
 		err = copyFile(
-			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", v.SerialNumber+".crt"),
-			filepath.Join(config.Current.PkiPath, "certs_by_serial", v.SerialNumber+".pem"))
+			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", v[3]+".crt"),
+			filepath.Join(config.Current.PkiPath, "certs_by_serial", serial+".pem"))
 		if err != nil {
 			return err
 		}
 		err = os.Rename(
-			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", v.SerialNumber+".crt"),
+			filepath.Join(config.Current.PkiPath, "revoked/certs_by_serial", serial+".crt"),
 			filepath.Join(config.Current.PkiPath, "issued", name+".crt"))
 		if err != nil {
 			return err
 		}
 		err = os.Rename(
-			filepath.Join(config.Current.PkiPath, "revoked/private_by_serial", v.SerialNumber+".key"),
+			filepath.Join(config.Current.PkiPath, "revoked/private_by_serial", serial+".key"),
 			filepath.Join(config.Current.PkiPath, "private", name+".key"))
 		if err != nil {
 			return err
 		}
 		err = os.Rename(
-			filepath.Join(config.Current.PkiPath, "revoked/reqs_by_serial", v.SerialNumber+".req"),
+			filepath.Join(config.Current.PkiPath, "revoked/reqs_by_serial", serial+".req"),
 			filepath.Join(config.Current.PkiPath, "reqs", name+".req"))
 		if err != nil {
 			return err
 		}
-		l[k].Flag = "V"
-		l[k].RevoceDate = ""
+		l[k][0] = "V"
+		l[k][2] = ""
 		modify = true
 	}
 	if modify {

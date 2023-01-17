@@ -83,8 +83,8 @@ func Revoke(w http.ResponseWriter, r *http.Request) {
 }
 
 func Unrevoke(w http.ResponseWriter, r *http.Request) {
-	identity := chi.URLParam(r, "identity")
-	err := easyrsa.UnrevokeClient(identity)
+	serial := chi.URLParam(r, "serial")
+	err := easyrsa.UnrevokeClient(serial)
 	if err != nil {
 		fmt.Fprintln(w, err)
 	}
