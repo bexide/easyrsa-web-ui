@@ -7,6 +7,7 @@ level = "info"
 
 [http]
 port = "3000"
+#host = "localhost"
 
 [openvpn]
 support = true
