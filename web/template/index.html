@@ -26,14 +26,49 @@
             })
             loadBody()
         });
-        function confirm_revoke() {
-            return confirm('無効化して良いですか')
+        function do_create() {
+            var form = new FormData()
+            var elem = document.querySelector("input[name=newname]")
+            form.append('name', elem.value)
+            fetch(`./user/create`, {
+                method: "POST",
+                body: form,
+            }).then((res) => {
+                if (res.ok) {
+                    document.getElementById("entry-bg").style.display = 'none'
+                    loadBody()
+                }
+            })
         }
-        function confirm_unrevoke() {
-            return confirm('有効に戻して良いですか')
+        function do_revoke(item) {
+            if (confirm(`${item.target.name} を無効化して良いですか`)) {
+                fetch(`./user/${item.target.name}/revoke`, {method: "POST"})
+                .then((res) => {
+                    if (res.ok) {
+                        loadBody()
+                    }
+                })
+            }
         }
-        function confirm_renew() {
-            return confirm('更新して良いですか')
+        function do_unrevoke(item) {
+            if (confirm(`${item.target.name} を有効に戻して良いですか`)) {
+                fetch(`./user/${item.target.name}/unrevoke`, {method: "POST"})
+                .then((res) => {
+                    if (res.ok) {
+                        loadBody()
+                    }
+                })
+            }
+        }
+        function do_renew(item) {
+            if (confirm(`${item.target.name} を更新して良いですか`)) {
+                fetch(`./user/${item.target.name}/renew`, {method: "POST"})
+                .then((res) => {
+                    if (res.ok) {
+                        loadBody()
+                    }
+                })
+            }
         }
         function dateFormat(src) {
             const w = new Date(src)
@@ -45,11 +80,13 @@
                 + ('0' + w.getDate()).slice(-2)
         }
         function loadBody() {
+            var elem = document.getElementById("display_toggle")
             fetch("./user/list", {method: "GET"})
             .then(response => response.json())
             .then(body => {
                 var tbody = document.querySelector('table#maintable tbody')
                 if (!tbody) return
+                tbody.innerHTML = ''
                 for (item of body) {
                     var tr = document.createElement('tr')
                     tr.appendChild(Object.assign(document.createElement('td'), {innerHTML: item.Status }))
@@ -71,19 +108,17 @@
                         tr.appendChild(td)
 
                         td = document.createElement('td')
-                        td.appendChild(Object.assign(document.createElement('form'), {
-                            method: 'POST',
-                            action: './user/' + item.Identity + '/revoke',
-                            onsubmit: 'return confirm_revoke()',
-                            innerHTML: `<button>無効化</button`,
+                        td.appendChild(Object.assign(document.createElement('button'), {
+                            name: item.Identity,
+                            onclick: do_revoke,
+                            innerHTML: '無効化',
                         }))
 
                         if (item.EnableRenew) {
-                            td.appendChild(Object.assign(document.createElement('form'), {
-                                method: 'POST',
-                                action: './user/' + item.Identity + '/renew',
-                                onsubmit: 'return confirm_renew()',
-                                innerHTML: `<button>更新</button`,
+                            td.appendChild(Object.assign(document.createElement('button'), {
+                                name: item.Identity,
+                                onclick: do_renew,
+                                innerHTML: '更新',
                             }))
                         }
                         tr.appendChild(td)
@@ -92,14 +127,16 @@
                         tr.appendChild(td)
                         td = document.createElement('td')
                         if (item.EnableUnrevoke) {
-                            td.appendChild(Object.assign(document.createElement('form'), {
-                                method: 'POST',
-                                action: './user/' + item.Serial + '/unrevoke',
-                                onsubmit: 'return confirm_unrevoke()',
-                                innerHTML: `<button>有効化</button`,
+                            td.appendChild(Object.assign(document.createElement('button'), {
+                                name: item.Serial,
+                                onclick: do_unrevoke,
+                                innerHTML: '有効化',
                             }))
                         }
                         tr.setAttribute('class', 'inactive')
+                        if (elem.checked) {
+                            tr.style.display = 'table-row'
+                        }
                         tr.appendChild(td)
                     }
 
@@ -132,10 +169,8 @@
     </table>
     <div id="entry-bg">
         <div id="entry-box">
-            <form method="POST" action="./user/create">
-                <input type="text" name="name" />
-                <button type="submit">作成</button>
-            </form>
+            <input type="text" name="newname" />
+            <button onclick="do_create()">作成</button>
             <button id="closebutton">閉じる</button>
         </div>
     </div>
