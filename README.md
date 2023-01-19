@@ -7,7 +7,7 @@ Optionary supported to output openvpn client configuration file.
 # how to use
 
 ```bash
-git clone https://github.com/okayasu/easyrsa-web-ui
+git clone https://github.com/bexide/easyrsa-web-ui
 cd easyrsa-web-ui
 cp config.toml.sample config.toml
 [edit config.toml]
