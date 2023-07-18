@@ -144,6 +144,10 @@ func Initialize() error {
 	return nil
 }
 
+func GenCrl() error {
+	return execCmd(fmt.Sprintf("%s gen-crl", easyrsaCmd()))
+}
+
 func execCmd(command string) error {
 	cmd := exec.Command("bash", "-c", command)
 	out, err := cmd.CombinedOutput()

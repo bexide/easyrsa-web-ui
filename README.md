@@ -17,6 +17,8 @@ go run main.go
 
 `go run main.go init` command may download easyrsa and build pki folder. It's failed when pki distination folder exist. So easy way is to make pki on tempolary folder and move it.
 
+`go run main.go gen-crl` command generate crl.pem file. It's useful add to cron or systemd timer.
+
 Not support Authorization. Easyrsa-web-ui is designed to use under reverse proxy. 
 
 ## configurations

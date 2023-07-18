@@ -32,6 +32,11 @@ func main() {
 			}
 			return
 		}
+		if os.Args[1] == "gen-crl" {
+			easyrsa.GenCrl()
+			fmt.Print("pki gen-crl")
+			return
+		}
 	}
 
 	web.Init()
