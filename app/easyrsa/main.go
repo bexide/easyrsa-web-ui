@@ -149,6 +149,7 @@ func GenCrl() error {
 }
 
 func execCmd(command string) error {
+	logrus.Info("exec: " + command)
 	cmd := exec.Command("bash", "-c", command)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
