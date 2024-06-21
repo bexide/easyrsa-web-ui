@@ -16,6 +16,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	l, err := easyrsa.Clients()
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
 	t := template.Must(template.New("web/template/index.html").Funcs(template.FuncMap{
 		"toDate": func(t2 time.Time) string {
@@ -27,9 +28,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			return fmt.Sprintf("%d/%02d/%02d", year, month, day)
 		},
 	}).ParseFiles("web/template/index.html"))
-	if err != nil {
-		fmt.Fprintln(w, err)
-	}
 	err = t.Execute(w, map[string]interface{}{
 		"Clients": l,
 		"Config":  config.Current,
@@ -43,10 +41,12 @@ func List(w http.ResponseWriter, r *http.Request) {
 	l, err := easyrsa.Clients()
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
-	json.NewEncoder(w).Encode(l)
+	err = json.NewEncoder(w).Encode(l)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
 }
 
@@ -56,6 +56,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		err := easyrsa.CreateClient(name)
 		if err != nil {
 			fmt.Fprintln(w, err)
+			return
 		}
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -90,6 +91,7 @@ func Revoke(w http.ResponseWriter, r *http.Request) {
 	err := easyrsa.RevokeClient(identity)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -99,6 +101,7 @@ func Unrevoke(w http.ResponseWriter, r *http.Request) {
 	err := easyrsa.UnrevokeClient(serial)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -108,6 +111,7 @@ func Renew(w http.ResponseWriter, r *http.Request) {
 	err := easyrsa.RenewClient(identity)
 	if err != nil {
 		fmt.Fprintln(w, err)
+		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
