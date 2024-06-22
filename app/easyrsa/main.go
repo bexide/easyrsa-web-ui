@@ -94,12 +94,14 @@ func copyFile(srcname, distname string) error {
 
 func InitEasyrsa() error {
 	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
+	if err == nil {
+		logrus.Info(config.Current.EasyrsaConfig.Path + " already exist")
+		return nil
+	}
+	_ = os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
+	err = execCmd(fmt.Sprintf("cd %s && curl -sL %s | tar -xzv --strip-components=1 -C .", config.Current.Path, config.Current.Package))
 	if err != nil {
-		os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
-		err := execCmd(fmt.Sprintf("cd %s && curl -sL https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.1/EasyRSA-3.1.1.tgz | tar -xzv --strip-components=1 -C .", config.Current.Path))
-		if err != nil {
-			return err
-		}
+		return err
 	}
 	return nil
 }
@@ -243,7 +245,7 @@ func writeIndex(list [][]string) error {
 	defer f.Close()
 
 	for _, v := range list {
-		f.WriteString(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\n",
+		_, _ = f.WriteString(fmt.Sprintf("%s\t%s\t%s\t%s\t%s\t%s\n",
 			v[0], v[1], v[2], v[3], v[4], v[5]))
 	}
 	return nil

@@ -14,7 +14,7 @@ func TestMain(t *testing.T) {
 		os.RemoveAll(config.Current.Path)
 	})
 
-	os.Chdir("../..")
+	_ = os.Chdir("../..")
 
 	config.Current.Path = "testrsa"
 	config.Current.PkiPath = "testpki"
