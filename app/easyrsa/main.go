@@ -152,7 +152,7 @@ func GenCrl() error {
 
 func execCmd(command string) error {
 	logrus.Info("exec: " + command)
-	cmd := exec.Command("bash", "-c", command)
+	cmd := exec.Command("sh", "-c", command)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
@@ -413,7 +413,7 @@ func RenewClient(name string) error {
 }
 
 func GetP12(name string) ([]byte, error) {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("openssl pkcs12 -export -passout pass: -inkey %s -in %s -certfile %s",
+	cmd := exec.Command("sh", "-c", fmt.Sprintf("openssl pkcs12 -export -passout pass: -inkey %s -in %s -certfile %s",
 		filepath.Join(config.Current.PkiPath, "private", fmt.Sprintf("%s.key", name)),
 		filepath.Join(config.Current.PkiPath, "issued", fmt.Sprintf("%s.crt", name)),
 		filepath.Join(config.Current.PkiPath, "ca.crt")))
