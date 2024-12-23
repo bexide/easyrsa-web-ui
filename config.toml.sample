@@ -1,7 +1,7 @@
 [easyrsa]
 path = "./easyrsa"
 pki_path = "/etc/openvpn/server"
-package = "https://github.com/OpenVPN/easy-rsa/releases/download/v3.2.0/EasyRSA-3.2.0.tgz"
+package = "https://github.com/OpenVPN/easy-rsa/releases/download/v3.2.1/EasyRSA-3.2.1.tgz"
 
 [logging]
 level = "info"
