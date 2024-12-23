@@ -92,11 +92,15 @@ func copyFile(srcname, distname string) error {
 	return err
 }
 
-func InitEasyrsa() error {
+func InitEasyrsa(force bool) error {
 	_, err := os.Stat(config.Current.EasyrsaConfig.Path)
 	if err == nil {
-		logrus.Info(config.Current.EasyrsaConfig.Path + " already exist")
-		return nil
+		if force {
+			_ = os.RemoveAll(config.Current.EasyrsaConfig.Path)
+		} else {
+			logrus.Info(config.Current.EasyrsaConfig.Path + " already exist")
+			return nil
+		}
 	}
 	_ = os.Mkdir(config.Current.EasyrsaConfig.Path, 0755)
 	err = execCmd(fmt.Sprintf("cd %s && curl -sL %s | tar -xzv --strip-components=1 -C .", config.Current.Path, config.Current.Package))
@@ -124,7 +128,7 @@ func IsInitialized() bool {
 }
 
 func Initialize() error {
-	err := InitEasyrsa()
+	err := InitEasyrsa(false)
 	if err != nil {
 		return err
 	}

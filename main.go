@@ -44,6 +44,15 @@ func main() {
 			}
 			return
 		}
+		if os.Args[1] == "reinstall-easyrsa" {
+			err := easyrsa.InitEasyrsa(true)
+			if err != nil {
+				logrus.Error(err)
+			} else {
+				logrus.Info("easyrsa reinstall")
+			}
+			return
+		}
 	}
 
 	web.Init()

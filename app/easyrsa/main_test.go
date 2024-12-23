@@ -23,7 +23,7 @@ func TestMain(t *testing.T) {
 	isInit := IsInitialized()
 	assert.False(t, isInit, "Initialize")
 
-	err := InitEasyrsa()
+	err := InitEasyrsa(false)
 	assert.NoError(t, err, "InitEasyrsa()")
 	if err != nil {
 		return

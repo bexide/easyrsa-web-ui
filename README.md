@@ -19,6 +19,8 @@ go run main.go
 
 `go run main.go gen-crl` command generate crl.pem file. It's useful add to cron or systemd timer.
 
+`go run main.go reinstall-easyrsa` command re-install easyrsa. this command delete easyrsa folder. backup vars or openssl-easyrsa.cnf if customized.
+
 Not support Authorization. Easyrsa-web-ui is designed to use under reverse proxy. 
 
 ## configurations
