@@ -103,6 +103,14 @@ func InitEasyrsa() error {
 	if err != nil {
 		return err
 	}
+	// INFO: support 3.2.1
+	if _, err = os.Stat(filepath.Join(config.Current.EasyrsaConfig.Path, "easyrsa-tools.lib")); err != nil {
+		url := "https://raw.githubusercontent.com/OpenVPN/easy-rsa/master/easyrsa3/easyrsa-tools.lib"
+		err = execCmd(fmt.Sprintf("cd %s && curl -O %s", config.Current.Path, url))
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -405,7 +413,7 @@ func RenewClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	err := execCmd(fmt.Sprintf("echo \"yes\" | %s renew %s nopass ", easyrsaCmd(), name))
+	err := execCmd(fmt.Sprintf("yes yes | %s renew %s ", easyrsaCmd(), name))
 	if err != nil {
 		return err
 	}

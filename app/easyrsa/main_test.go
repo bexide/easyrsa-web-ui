@@ -29,7 +29,13 @@ func TestMain(t *testing.T) {
 		return
 	}
 
-	n, err := os.Create("testrsa/vars")
+	err = Initialize()
+	assert.NoError(t, err, "Initialize()")
+	if err != nil {
+		return
+	}
+
+	n, err := os.Create("testpki/vars")
 	assert.NoError(t, err, "os.Create()")
 	if err != nil {
 		return
@@ -41,12 +47,6 @@ set_var EASYRSA_CRL_DAYS 13
 set_var EASYRSA_CERT_RENEW	15
 `)
 	assert.NoError(t, err, "io.Write()")
-	if err != nil {
-		return
-	}
-
-	err = Initialize()
-	assert.NoError(t, err, "Initialize()")
 	if err != nil {
 		return
 	}
