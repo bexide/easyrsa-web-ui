@@ -1,4 +1,3 @@
-{{ define "web/template/index.html" -}}
 <!DOCTYPE html>
 <html>
 
@@ -41,7 +40,7 @@
             })
         }
         function do_revoke(item) {
-            if (confirm(`${item.target.name} を無効化して良いですか`)) {
+            if (confirm(`{{t "ConfirmDisable"}}`)) {
                 fetch(`./user/${item.target.name}/revoke`, {method: "POST"})
                 .then((res) => {
                     if (res.ok) {
@@ -51,7 +50,7 @@
             }
         }
         function do_unrevoke(item) {
-            if (confirm(`${item.target.name} を有効に戻して良いですか`)) {
+            if (confirm(`{{t "ConfirmEnable"}}`)) {
                 fetch(`./user/${item.target.name}/unrevoke`, {method: "POST"})
                 .then((res) => {
                     if (res.ok) {
@@ -61,7 +60,7 @@
             }
         }
         function do_renew(item) {
-            if (confirm(`${item.target.name} を更新して良いですか`)) {
+            if (confirm(`{{t "ConfirmUpdate"}}`)) {
                 fetch(`./user/${item.target.name}/renew`, {method: "POST"})
                 .then((res) => {
                     if (res.ok) {
@@ -111,14 +110,14 @@
                         td.appendChild(Object.assign(document.createElement('button'), {
                             name: item.Identity,
                             onclick: do_revoke,
-                            innerHTML: '無効化',
+                            innerHTML: '{{t "Disable"|html}}',
                         }))
 
                         if (item.EnableRenew) {
                             td.appendChild(Object.assign(document.createElement('button'), {
                                 name: item.Identity,
                                 onclick: do_renew,
-                                innerHTML: '更新',
+                                innerHTML: '{{t "Update"|html}}',
                             }))
                         }
                         tr.appendChild(td)
@@ -130,7 +129,7 @@
                             td.appendChild(Object.assign(document.createElement('button'), {
                                 name: item.Serial,
                                 onclick: do_unrevoke,
-                                innerHTML: '有効化',
+                                innerHTML: '{{t "Enable"|html}}',
                             }))
                         }
                         tr.setAttribute('class', 'inactive')
@@ -149,32 +148,31 @@
 
 <body>
     <div class="top">
-        <button id="openbutton">新規作成</button>
+        <button id="openbutton">{{t "CreateNew"|html}}</button>
         <div class="top-right">
-            <label><input type="checkbox" id="display_toggle" />無効キー表示</label>
+            <label><input type="checkbox" id="display_toggle" />{{t "ViewDisabled"|html}}</label>
         </div>
     </div>
     <table id="maintable">
         <thead>
             <tr>
-                <th>ステータス</th>
-                <th>名称</th>
-                <th>有効期限</th>
-                <th>無効化日時</th>
-                <th>鍵</th>
-                <th>操作</th>
+                <th>{{t "Status"|html}}</th>
+                <th>{{t "Name"|html}}</th>
+                <th>{{t "Expire"|html}}</th>
+                <th>{{t "Expired"|html}}</th>
+                <th>{{t "Key"|html}}</th>
+                <th>{{t "Command"|html}}</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
     <div id="entry-bg">
         <div id="entry-box">
-            <input type="text" name="newname" />
-            <button onclick="do_create()">作成</button>
-            <button id="closebutton">閉じる</button>
+            {{t "Name"|html}} <input type="text" name="newname" />
+            <button onclick="do_create()">{{t "Create"|html}}</button>
+            <button id="closebutton">{{t "Close"|html}}</button>
         </div>
     </div>
 </body>
 
 </html>
-{{- end }}
