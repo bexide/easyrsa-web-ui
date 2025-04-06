@@ -14,3 +14,4 @@ inactive 3600
 key-direction 1
 remote-cert-tls server
 compress lz4-v2
+# mssfix 1300
