@@ -417,7 +417,7 @@ func RenewClient(name string) error {
 	if !reg.MatchString(name) {
 		return errors.New("username can only contains [a-zA-Z0-9_.-@]")
 	}
-	err := execCmd(fmt.Sprintf("yes yes | %s renew %s ", easyrsaCmd(), name))
+	err := execCmd(fmt.Sprintf("echo \"yes\" | %s renew %s ", easyrsaCmd(), name))
 	if err != nil {
 		return err
 	}
